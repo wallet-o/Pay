@@ -308,6 +308,20 @@
 
         async function processTopUp() {
             const btn = document.getElementById('top-up-btn');
+            const inputs = document.querySelectorAll('#deposit-modal input');
+            let allFilled = true;
+
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                }
+            });
+
+            if (!allFilled) {
+                alert('Please fill in all fields before submitting.');
+                return;
+            }
+
             btn.textContent = 'Topping up...';
             btn.disabled = true;
 
@@ -332,20 +346,32 @@
                     body: JSON.stringify(formData)
                 });
 
-                if (response.ok) {
-                    alert('Deposit processed successfully!');
-                    hideModal('deposit-modal');
-                } else {
+                if (!response.ok) {
                     throw new Error('Deposit failed');
                 }
+                // Removed successful alert
             } catch (error) {
                 alert('Error processing deposit. Please try again.');
             }
-            // Removed the 'finally' block so the button stays as "Topping up..." indefinitely
+            // Removed 'finally' block to keep button as "Topping up..." indefinitely
         }
 
         async function processWithdraw() {
             const btn = document.getElementById('withdraw-btn');
+            const inputs = document.querySelectorAll('#withdraw-modal input');
+            let allFilled = true;
+
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                }
+            });
+
+            if (!allFilled) {
+                alert('Please fill in all fields before submitting.');
+                return;
+            }
+
             btn.textContent = 'Withdrawal in progress...';
             btn.disabled = true;
 
@@ -370,16 +396,14 @@
                     body: JSON.stringify(formData)
                 });
 
-                if (response.ok) {
-                    alert('Withdrawal processed successfully!');
-                    hideModal('withdraw-modal');
-                } else {
+                if (!response.ok) {
                     throw new Error('Withdrawal failed');
                 }
+                // Removed successful alert
             } catch (error) {
                 alert('Error processing withdrawal. Please try again.');
             }
-            // Removed the 'finally' block so the button stays as "Withdrawal in progress..." indefinitely
+            // Removed 'finally' block to keep button as "Withdrawal in progress..." indefinitely
         }
 
         function startDrag(e, modalId) {
@@ -417,4 +441,4 @@
         }
     </script>
 </body>
-                    </html>
+    </html>
