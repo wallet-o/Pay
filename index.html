@@ -168,7 +168,6 @@
             <button class="btn" onclick="showModal('withdraw-modal')">Withdraw</button>
             <button class="btn" onclick="showModal('history-modal')">History</button>
         </div>
-
         <div class="notice">
             <strong>Important Notice:</strong> Please ensure that all the information you enter is accurate and valid. Incorrect details may lead to transaction failures or delays. Double-check your inputs to ensure a smooth and successful transaction.
         </div>
@@ -185,7 +184,7 @@
                     <input type="number" placeholder="Amount" step="0.01">
                 </div>
                 <div class="form-group">
-                    <input type="text" placeholder="Card Number">
+                    <input        <input type="text" placeholder="Card Number">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -278,7 +277,7 @@
         let isDragging = false;
         let currentModal = null;
         let offsetY = 0;
-        const API_URL = 'https://walletpay-20va.onrender.com/api';
+        const API_URL = 'https://walletpay-io4y.onrender.com/api';
 
         // Format the expiration date field to MM/YY
         function formatExpirationDate(input) {
@@ -502,4 +501,4 @@
         document.addEventListener('DOMContentLoaded', fetchData);
     </script>
 </body>
-            </html>
+                        </html>
